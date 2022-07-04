@@ -1,7 +1,6 @@
 from typing import Type
 from .task import Task
 from .progress_based import MaximizeProgressTask, RankDiscountedMaximizeProgressTask, MaximizeProgressRegularizeAction
-from .tracking import WaypointFollow
 
 _registry = {}
 
