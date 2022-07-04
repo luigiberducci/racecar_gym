@@ -6,10 +6,10 @@ setup(
     packages=find_packages(),
     install_requires=['pybullet==3.1.7',
                       'scipy', # version automatically choosen w.r.t numpy
-                      'numpy==1.22.3',
+                      'numpy>=1.23.0',
                       'gym==0.21.0',
                       'yamldataclassconfig==1.5.0',
-                      'nptyping<2.0',
+                      'nptyping>=2.0',
                       'pettingzoo==1.18.1'
                       ],
     author='Axel Brunnbauer',
