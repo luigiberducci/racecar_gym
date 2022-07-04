@@ -59,6 +59,18 @@ sensors:
       angle: 4.71
       debug: False
 
+  - type: lidar
+    name: lidar_64   # low-resolution lidar
+    frequency: 25
+    params:
+      accuracy: 0.03  # maximum deviation from true scan range (percentage)
+      rays: 64        # it uses only 64 rays
+      range: 15.0
+      min_range: 0.25
+      angle_start: -2.36
+      angle: 4.71
+      debug: True
+
   - type: rgb_camera
     name: rgb_camera
     frequency: 30
