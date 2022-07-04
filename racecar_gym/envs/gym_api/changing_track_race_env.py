@@ -14,7 +14,7 @@ class ChangingTrackRaceEnv(gym.Env):
         if order == 'sequential':
             self._order_fn = lambda: (self._current_track_index + 1) % len(env_factories)
         elif order == 'random':
-            self._order_fn = lambda: random.choice(list(set(range(0, len(env_factories))) - {self._current_track_index}))
+            self._order_fn = lambda: random.choice(range(0, len(env_factories)))    # sample with replacement
         elif order == 'manual':
             self._order_fn = lambda: self._current_track_index
         self._order = order
