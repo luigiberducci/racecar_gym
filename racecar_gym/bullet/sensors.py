@@ -109,7 +109,7 @@ class Lidar(BulletSensor[NDArray[Any, Float]]):
     def space(self) -> gym.Space:
         return gym.spaces.Box(low=self._min_range,
                               high=self._min_range + self._range,
-                              dtype=np.float64,
+                              dtype=np.float32,
                               shape=(self._rays,))
 
     def observe(self) -> NDArray[Any, Float]:
