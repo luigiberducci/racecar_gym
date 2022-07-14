@@ -87,7 +87,7 @@ def load_world(spec: WorldSpec, agents: List[Agent]) -> core.World:
         try:
             print(f'Downloading {spec.name} track.')
             urllib.request.urlretrieve(
-                f'https://github.com/axelbr/racecar_gym/releases/download/tracks-v1.0.0/{spec.name}.zip',
+                f'https://github.com/luigiberducci/racecar_gym/releases/download/tracks-v2.0.0/{spec.name}.zip',
                 f'{scene_path}/{spec.name}.zip'
             )
             with zipfile.ZipFile(f'{scene_path}/{spec.name}.zip', 'r') as zip:
