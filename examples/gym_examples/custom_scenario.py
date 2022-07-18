@@ -1,4 +1,8 @@
 from time import sleep
+
+import numpy as np
+
+from agents.follow_the_gap import FollowTheGap
 from racecar_gym import MultiAgentScenario
 from racecar_gym.envs import gym_api
 
@@ -14,9 +18,14 @@ print(env.action_space)
 
 done = False
 obs = env.reset(mode='random_ball')
+ftg = FollowTheGap()
+_ = ftg.reset()
 
 while not done:
+    agent_action, _ = ftg.get_action(observation=obs["A"])
     action = env.action_space.sample()
+    action["A"] = agent_action
+
     obs, rewards, dones, states = env.step(action)
     done = any(dones.values())
     sleep(0.01)
