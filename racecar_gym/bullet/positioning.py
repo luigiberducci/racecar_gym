@@ -30,7 +30,9 @@ class AutomaticGridStrategy(PositioningStrategy):
 
         x = center_position[0] + 1.0 * (self._number_of_agents - agent_index) / 2
 
-        return (x, y, 0.05), (0.0, 0.0, 0.0)
+        # to reverse: replace orientation with (0, 0, rad(180))
+        # todo: change order of agents
+        return (x, y, 0.05), (0.0, 0.0, np.deg2rad(180))
 
 
 class RandomPositioningStrategy(PositioningStrategy):

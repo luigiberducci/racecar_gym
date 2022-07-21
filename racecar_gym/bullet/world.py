@@ -31,6 +31,7 @@ class World(world.World):
         rendering: bool
         time_step: float
         gravity: float
+        reverse: bool = True
 
     def __init__(self, config: Config, agents: List[Agent]):
         self._config = config
@@ -53,9 +54,19 @@ class World(world.World):
                 ('occupancy', 'drivable_area')
             ]
         ])
+
+        if config.reverse:
+            mask = self._maps['occupancy'].map
+            reverse_progress_map = np.where(mask, 1 - self._maps['progress'].map, 0.0)
+            self._maps['progress'] = GridMap(
+                grid_map=reverse_progress_map,
+                origin=self._config.map_config.origin,
+                resolution=self._config.map_config.resolution
+            )
+
         self._state['maps'] = self._maps
-        self._tmp_occupancy_map = None      # used for `random_ball` sampling
-        self._progress_center = None        # used for `random_ball` sampling
+        self._tmp_occupancy_map = None  # used for `random_ball` sampling
+        self._progress_center = None  # used for `random_ball` sampling
         self._trajectory = []
 
     def init(self) -> None:
@@ -97,9 +108,11 @@ class World(world.World):
             min_distance_to_wall = 0.5
             progress_map = self._maps['progress'].map
             obstacle_map = self._maps['obstacle'].map
-            if start_index == 0:    # on first agent, compute a fixed interval for sampling and copy occupancy map
-                progresses = progress_map[obstacle_map > min_distance_to_wall]                                  # center has enough distance from the walls
-                progresses = progresses[(progresses > progress_radius) & (progresses < (1-progress_radius))]    # center+-radius in [0,1]
+            if start_index == 0:  # on first agent, compute a fixed interval for sampling and copy occupancy map
+                progresses = progress_map[
+                    obstacle_map > min_distance_to_wall]  # center has enough distance from the walls
+                progresses = progresses[
+                    (progresses > progress_radius) & (progresses < (1 - progress_radius))]  # center+-radius in [0,1]
                 self._progress_center = np.random.choice(progresses)
                 self._tmp_occupancy_map = self._maps['occupancy'].map.copy()
             strategy = RandomPositioningWithinBallStrategy(progress_map=self._maps['progress'],
