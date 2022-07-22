@@ -15,7 +15,7 @@ actuators:
   - type: speed
     name: speed
     params:
-      velocity_multiplier: 25.0
+      velocity_multiplier: 23.0
       max_velocity: 3.5
       max_force: 0.5
 
