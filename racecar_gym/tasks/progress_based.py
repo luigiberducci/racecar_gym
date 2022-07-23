@@ -5,7 +5,7 @@ import numpy as np
 class MaximizeProgressTask(Task):
     def __init__(self, laps: int, time_limit: float, terminate_on_collision: bool,
                  delta_progress: float = 0.0, collision_reward: float = 0.0,
-                 frame_reward: float = 0.0, progress_reward: float = 100.0, n_min_rays_termination=1080):
+                 frame_reward: float = 0.0, progress_reward: float = 1.0, n_min_rays_termination=1080):
         self._time_limit = time_limit
         self._laps = laps
         self._terminate_on_collision = terminate_on_collision
