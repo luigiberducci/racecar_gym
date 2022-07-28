@@ -43,13 +43,14 @@ class FollowTheWall(Agent):
         max_speed: float = 3.5  # max speed (m/s)
 
     def __init__(self,
-                 target_distance_left: float = 0.4,
-                 target_speed: float = 1.5,
-                 reference_angle: float = 55,
-                 steer_pid: PID.PIDConfig = PID.PIDConfig(1.0, 0.0, 0.0)):
+                 target_distance_left: float = 0.5,
+                 target_speed: float = 1.0,
+                 reference_angle: float = 60):
         # config controllers
         self._c = self.Config()
-        self._steer_ctrl = PID(steer_pid, init_control=0.0)
+        self._steer_ctrl = PID(
+            PID.PIDConfig(0.8 * 16.0, 0.0, 0.1 * 0.4 * 16.0),   # tuned with ZN method (Ku=16, Tu=0.5)
+            init_control=0.0)
 
         # target variables
         self._target_distance_left = target_distance_left
@@ -101,7 +102,7 @@ class FollowTheWall(Agent):
         alpha_dist = self._average_distance_around_beam(scan, self._alpha_index, n=self._n_beams_for_dist)
         theta = np.arctan((alpha_dist * self._cos_alpha - left_dist) / (alpha_dist * self._sin_alpha))  # in radians
         dist_to_wall = left_dist * np.cos(theta)
-        naive_predicted_distance = np.sin(theta)  # this might benefit from some multiplicative scalar
+        naive_predicted_distance = 0.5 * np.sin(theta)  # this might benefit from some multiplicative scalar
         return dist_to_wall + naive_predicted_distance
 
     @staticmethod
