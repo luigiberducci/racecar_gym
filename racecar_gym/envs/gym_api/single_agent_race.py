@@ -43,3 +43,5 @@ class SingleAgentRaceEnv(gym.Env):
 
     def seed(self, seed=None):
         self._scenario.world.seed(seed)
+        self.observation_space.seed(seed)
+        self.action_space.seed(seed)
