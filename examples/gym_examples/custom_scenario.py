@@ -21,12 +21,17 @@ obs = env.reset(mode='random_ball')
 ftg = FollowTheGap()
 _ = ftg.reset()
 
+maxv = 0
 while not done:
     agent_action, _ = ftg.get_action(observation=obs["A"])
     action = env.action_space.sample()
     action["A"] = agent_action
 
     obs, rewards, dones, states = env.step(action)
+
+    maxv = max(maxv, obs["A"]["velocity"][0])
+    print(maxv)
+
     done = any(dones.values())
     sleep(0.01)
 
