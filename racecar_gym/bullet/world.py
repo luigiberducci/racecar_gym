@@ -122,9 +122,6 @@ class World(world.World):
                         velocity_sensors = [sensor._sensor for sensor in agent.vehicle.sensors if sensor.type == "velocity"]
                         for sensor in velocity_sensors:
                             sensor.set_gaussian_noise(value)
-
-            print(f"\t{parameter}:{value}")
-        print()
         return True
 
     @staticmethod
