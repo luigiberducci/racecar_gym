@@ -109,6 +109,7 @@ def load_world(spec: WorldSpec, agents: List[Agent]) -> core.World:
         map_config=config.map,
         time_step=config.simulation.time_step,
         gravity=config.physics.gravity,
+        reverse=spec.reverse,
         rendering=config.simulation.rendering,
     )
 

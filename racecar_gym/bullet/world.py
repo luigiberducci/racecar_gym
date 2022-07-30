@@ -31,6 +31,7 @@ class World(world.World):
         rendering: bool
         time_step: float
         gravity: float
+        reverse: bool
 
     def __init__(self, config: Config, agents: List[Agent]):
         self._config = config
@@ -53,6 +54,15 @@ class World(world.World):
                 ('occupancy', 'drivable_area')
             ]
         ])
+        if self._config.reverse:
+            progress_map = self._maps["progress"].map
+            reversed_progress = np.where(self._maps["occupancy"].map, 1 - progress_map, progress_map)
+            self._maps["progress"] = GridMap(
+                grid_map=reversed_progress,
+                origin=self._config.map_config.origin,
+                resolution=self._config.map_config.resolution
+            )
+
         self._state['maps'] = self._maps
         self._tmp_occupancy_map = None      # used for `random_ball` sampling
         self._progress_center = None        # used for `random_ball` sampling
@@ -85,15 +95,20 @@ class World(world.World):
     def get_starting_position(self, agent: Agent, mode: str) -> Pose:
         start_index = list(map(lambda agent: agent.id, self._agents)).index(agent.id)
         if mode == 'grid':
-            strategy = AutomaticGridStrategy(obstacle_map=self._maps['obstacle'], number_of_agents=len(self._agents))
+            strategy = AutomaticGridStrategy(obstacle_map=self._maps['obstacle'],
+                                             number_of_agents=len(self._agents),
+                                             reverse=self._config.reverse)
         elif mode == 'random':
             strategy = RandomPositioningStrategy(progress_map=self._maps['progress'],
-                                                 obstacle_map=self._maps['obstacle'], alternate_direction=False)
+                                                 obstacle_map=self._maps['obstacle'],
+                                                 alternate_direction=False, reverse=False)
         elif mode == 'random_bidirectional':
             strategy = RandomPositioningStrategy(progress_map=self._maps['progress'],
-                                                 obstacle_map=self._maps['obstacle'], alternate_direction=True)
+                                                 obstacle_map=self._maps['obstacle'],
+                                                 reverse=False,
+                                                 alternate_direction=True)
         elif mode == 'random_ball':
-            progress_radius = 0.05
+            progress_radius = 0.10
             min_distance_to_wall = 0.5
             progress_map = self._maps['progress'].map
             obstacle_map = self._maps['obstacle'].map
@@ -107,7 +122,8 @@ class World(world.World):
                                                            drivable_map=self._tmp_occupancy_map,
                                                            progress_center=self._progress_center,
                                                            progress_radius=progress_radius,
-                                                           min_distance_to_obstacle=min_distance_to_wall)
+                                                           min_distance_to_obstacle=min_distance_to_wall,
+                                                           reverse=False)
         else:
             raise NotImplementedError(mode)
         position, orientation = strategy.get_pose(agent_index=start_index)
