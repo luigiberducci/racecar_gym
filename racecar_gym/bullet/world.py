@@ -101,11 +101,10 @@ class World(world.World):
         elif mode == 'random':
             strategy = RandomPositioningStrategy(progress_map=self._maps['progress'],
                                                  obstacle_map=self._maps['obstacle'],
-                                                 alternate_direction=False, reverse=False)
+                                                 alternate_direction=False)
         elif mode == 'random_bidirectional':
             strategy = RandomPositioningStrategy(progress_map=self._maps['progress'],
                                                  obstacle_map=self._maps['obstacle'],
-                                                 reverse=False,
                                                  alternate_direction=True)
         elif mode == 'random_ball':
             progress_radius = 0.10
@@ -122,8 +121,7 @@ class World(world.World):
                                                            drivable_map=self._tmp_occupancy_map,
                                                            progress_center=self._progress_center,
                                                            progress_radius=progress_radius,
-                                                           min_distance_to_obstacle=min_distance_to_wall,
-                                                           reverse=False)
+                                                           min_distance_to_obstacle=min_distance_to_wall)
         else:
             raise NotImplementedError(mode)
         position, orientation = strategy.get_pose(agent_index=start_index)
