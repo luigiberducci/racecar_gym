@@ -11,13 +11,13 @@ actuators:
     params:
       velocity_multiplier: 22.0
       max_velocity: 5.0
-      max_force: 10
+      max_force: 0.5
   - type: speed
     name: speed
     params:
       velocity_multiplier: 22.0
-      max_velocity: 5.0
-      max_force: 10
+      max_velocity: 3.5
+      max_force: 0.5
 
 sensors:
   - type: pose
