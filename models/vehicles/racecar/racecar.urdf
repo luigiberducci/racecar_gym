@@ -767,22 +767,78 @@
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <box size="0.01 0.175 0.20"/>
+                <box size="0.01 0.175 0.10"/>
             </geometry>
         </collision>
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <box size="0.01 0.175 0.20"/>
+                <box size="0.01 0.175 0.10"/>
             </geometry>
             <material name="blue"/>
         </visual>
     </link>
     <joint name="detection_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="-0.05 0.0 0.125"/>
+        <origin rpy="0 0 0" xyz="-0.05 0.0 0.075"/>
         <parent link="chassis"/>
         <child link="detection_link"/>
         <axis xyz="0 0 1"/>
     </joint>
+
+    <link name="detection_left_link">
+        <inertial>
+            <mass value="0.01"/>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+        </inertial>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="0.01 0.175 0.10"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="0.01 0.175 0.10"/>
+            </geometry>
+            <material name="blue"/>
+        </visual>
+    </link>
+    <joint name="detection_left_joint" type="fixed">
+        <origin rpy="0 0 1.570796" xyz="0.0875 0.0875 0.0"/>
+        <parent link="detection_link"/>
+        <child link="detection_left_link"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+    <link name="detection_right_link">
+        <inertial>
+            <mass value="0.01"/>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+        </inertial>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="0.01 0.175 0.10"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="0.01 0.175 0.10"/>
+            </geometry>
+            <material name="blue"/>
+        </visual>
+    </link>
+    <joint name="detection_right_joint" type="fixed">
+        <origin rpy="0 0 1.570796" xyz="0.0875 -0.0875 0.0"/>
+        <parent link="detection_link"/>
+        <child link="detection_right_link"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+
 </robot>
 
