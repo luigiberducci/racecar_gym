@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 from yamldataclassconfig.config import YamlDataClassConfig
 
 
@@ -21,7 +21,17 @@ class VehicleSpec(YamlDataClassConfig):
     name: str = None
     sensors: List[str] = field(default_factory=lambda: [])
     actuators: List[str] = field(default_factory=lambda: ['steering', 'motor'])
-    color: str = 'blue' # either red, blue, green, magenta or random
+    color: str = 'blue'  # either red, blue, green, magenta or random
+
+
+@dataclass
+class DomainRandomizationConfig:
+    gravity: Tuple[float, float] = None
+    steering_multiplier: Tuple[float, float] = None
+    velocity_multiplier: Tuple[float, float] = None
+    max_velocity: Tuple[float, float] = None
+    motor_force: Tuple[float, float] = None
+    sensor_velocity_noise: Tuple[float, float] = None
 
 
 @dataclass
@@ -29,6 +39,7 @@ class WorldSpec(YamlDataClassConfig):
     name: str = None
     reverse: bool = False
     rendering: bool = False
+    domain_randomization: DomainRandomizationConfig = None
 
 
 @dataclass
