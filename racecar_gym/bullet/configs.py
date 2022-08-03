@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Union
 
 from yamldataclassconfig.config import YamlDataClassConfig
 
@@ -45,7 +45,7 @@ class SimulationConfig(YamlDataClassConfig):
 
 @dataclass
 class PhysicsConfig(YamlDataClassConfig):
-    gravity: float = None
+    gravity: Union[float, List[float]] = None
 
 
 @dataclass

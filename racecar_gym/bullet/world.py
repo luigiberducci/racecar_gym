@@ -1,7 +1,7 @@
 import math
 import random
 from dataclasses import dataclass
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 
 import gym
 import numpy as np
@@ -16,6 +16,7 @@ from racecar_gym.core import world
 from racecar_gym.core.agent import Agent
 from racecar_gym.core.definitions import Pose
 from racecar_gym.core.gridmaps import GridMap
+from racecar_gym.core.specs import DomainRandomizationConfig
 
 
 class World(world.World):
@@ -31,9 +32,11 @@ class World(world.World):
         rendering: bool
         time_step: float
         gravity: float
+        reverse: bool
 
-    def __init__(self, config: Config, agents: List[Agent]):
+    def __init__(self, config: Config, agents: List[Agent], dr_config: DomainRandomizationConfig = None):
         self._config = config
+        self._dr = dr_config
         self._map_id = None
         self._time = 0.0
         self._agents = agents
@@ -53,9 +56,18 @@ class World(world.World):
                 ('occupancy', 'drivable_area')
             ]
         ])
+        if self._config.reverse:
+            progress_map = self._maps["progress"].map
+            reversed_progress = np.where(self._maps["occupancy"].map, 1 - progress_map, progress_map)
+            self._maps["progress"] = GridMap(
+                grid_map=reversed_progress,
+                origin=self._config.map_config.origin,
+                resolution=self._config.map_config.resolution
+            )
+
         self._state['maps'] = self._maps
-        self._tmp_occupancy_map = None      # used for `random_ball` sampling
-        self._progress_center = None        # used for `random_ball` sampling
+        self._tmp_occupancy_map = None  # used for `random_ball` sampling
+        self._progress_center = None  # used for `random_ball` sampling
         self._trajectory = []
 
     def init(self) -> None:
@@ -72,10 +84,49 @@ class World(world.World):
 
     def reset(self):
         p.setTimeStep(self._config.time_step)
-        p.setGravity(0, 0, self._config.gravity)
+        if not self.randomize_domain():
+            p.setGravity(0, 0, self._config.gravity)
         p.stepSimulation()
         self._time = 0.0
         self._state = dict([(a.id, {}) for a in self._agents])
+
+    def randomize_domain(self) -> bool:
+        # if no dr config defined, return false
+        if self._dr is None:
+            return False
+        # sample new parameters
+        for parameter, domain in zip(
+                ["gravity", "velocity_multiplier", "max_velocity", "motor_force", "steering_multiplier", "sensor_velocity_noise"],
+                [self._dr.gravity, self._dr.velocity_multiplier, self._dr.max_velocity,
+                 self._dr.motor_force, self._dr.steering_multiplier, self._dr.sensor_velocity_noise]):
+            # sample value
+            if domain is None:
+                continue
+            value = self._sample_domain(domain)
+            # set value
+            if parameter == "gravity":
+                p.setGravity(0, 0, value)
+            else:
+                for agent in self._agents:
+                    steering = "steering"
+                    motor = "motor" if "motor" in agent.vehicle.actuators else "speed"
+                    if parameter == "velocity_multiplier":
+                        agent.vehicle.actuators[motor].set_velocity_multiplier(value)
+                    elif parameter == "max_velocity":
+                        agent.vehicle.actuators[motor].set_max_velocity(value)
+                    elif parameter == "motor_force":
+                        agent.vehicle.actuators[motor].set_motor_force(value)
+                    elif parameter == "steering_multiplier":
+                        agent.vehicle.actuators[steering].set_steering_multiplier(value)
+                    elif parameter == "sensor_velocity_noise":
+                        velocity_sensors = [sensor._sensor for sensor in agent.vehicle.sensors if sensor.type == "velocity"]
+                        for sensor in velocity_sensors:
+                            sensor.set_gaussian_noise(value)
+        return True
+
+    @staticmethod
+    def _sample_domain(domain: Tuple[float, float]):
+        return domain[0] + np.random.rand() * (domain[1] - domain[0])
 
     def _load_scene(self, sdf_file: str):
         ids = p.loadSDF(sdf_file)
@@ -85,21 +136,27 @@ class World(world.World):
     def get_starting_position(self, agent: Agent, mode: str) -> Pose:
         start_index = list(map(lambda agent: agent.id, self._agents)).index(agent.id)
         if mode == 'grid':
-            strategy = AutomaticGridStrategy(obstacle_map=self._maps['obstacle'], number_of_agents=len(self._agents))
+            strategy = AutomaticGridStrategy(obstacle_map=self._maps['obstacle'],
+                                             number_of_agents=len(self._agents),
+                                             reverse=self._config.reverse)
         elif mode == 'random':
             strategy = RandomPositioningStrategy(progress_map=self._maps['progress'],
-                                                 obstacle_map=self._maps['obstacle'], alternate_direction=False)
+                                                 obstacle_map=self._maps['obstacle'],
+                                                 alternate_direction=False)
         elif mode == 'random_bidirectional':
             strategy = RandomPositioningStrategy(progress_map=self._maps['progress'],
-                                                 obstacle_map=self._maps['obstacle'], alternate_direction=True)
+                                                 obstacle_map=self._maps['obstacle'],
+                                                 alternate_direction=True)
         elif mode == 'random_ball':
-            progress_radius = 0.05
+            progress_radius = 0.10
             min_distance_to_wall = 0.5
             progress_map = self._maps['progress'].map
             obstacle_map = self._maps['obstacle'].map
-            if start_index == 0:    # on first agent, compute a fixed interval for sampling and copy occupancy map
-                progresses = progress_map[obstacle_map > min_distance_to_wall]                                  # center has enough distance from the walls
-                progresses = progresses[(progresses > progress_radius) & (progresses < (1-progress_radius))]    # center+-radius in [0,1]
+            if start_index == 0:  # on first agent, compute a fixed interval for sampling and copy occupancy map
+                progresses = progress_map[
+                    obstacle_map > min_distance_to_wall]  # center has enough distance from the walls
+                progresses = progresses[
+                    (progresses > progress_radius) & (progresses < (1 - progress_radius))]  # center+-radius in [0,1]
                 self._progress_center = np.random.choice(progresses)
                 self._tmp_occupancy_map = self._maps['occupancy'].map.copy()
             strategy = RandomPositioningWithinBallStrategy(progress_map=self._maps['progress'],

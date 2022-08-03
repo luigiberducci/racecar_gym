@@ -32,6 +32,8 @@ class SubprocessEnv(Env):
             elif command == 'close':
                 terminate = True
                 connection.close()
+            elif command == 'seed':
+                env.seed(**kwargs)
 
     def step(self, action):
         self._parent_conn.send(('step', dict(action=action)))
@@ -48,6 +50,9 @@ class SubprocessEnv(Env):
     def close(self):
         self._parent_conn.send(('close', False))
         self._parent_conn.close()
+
+    def seed(self, seed=None):
+        self._parent_conn.send(('seed', dict(seed=seed)))
 
     def _return(self) -> Any:
         if self._blocking:

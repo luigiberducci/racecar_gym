@@ -51,3 +51,7 @@ class ChangingTrackRaceEnv(gym.Env):
     def set_next_env(self):
         assert self._order == 'manual'
         self._current_track_index = (self._current_track_index + 1) % len(self._envs)
+
+    def seed(self, seed=None):
+        for env in self._envs:
+            env.seed(seed)

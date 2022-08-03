@@ -109,10 +109,13 @@ def load_world(spec: WorldSpec, agents: List[Agent]) -> core.World:
         map_config=config.map,
         time_step=config.simulation.time_step,
         gravity=config.physics.gravity,
+        reverse=spec.reverse,
         rendering=config.simulation.rendering,
     )
 
-    return World(config=world_config, agents=agents)
+    dr_config = spec.domain_randomization
+
+    return World(config=world_config, agents=agents, dr_config=dr_config)
 
 
 def resolve_path(file: str, relative_path: str) -> str:

@@ -13,9 +13,10 @@ class PositioningStrategy(ABC):
 
 
 class AutomaticGridStrategy(PositioningStrategy):
-    def __init__(self, obstacle_map: GridMap, number_of_agents: int):
+    def __init__(self, obstacle_map: GridMap, number_of_agents: int, reverse: bool):
         self._distance_map = obstacle_map
         self._number_of_agents = number_of_agents
+        self._reverse = reverse
 
     def get_pose(self, agent_index: int) -> Pose:
         px, py = self._distance_map.to_pixel(position=(0, 0, 0))
@@ -23,14 +24,21 @@ class AutomaticGridStrategy(PositioningStrategy):
         center = np.argmax(starting_area)
         max_index = np.unravel_index(center, shape=starting_area.shape)
         center_position = self._distance_map.to_meter(px + max_index[0], py + max_index[1])
+
         if agent_index % 2 == 0:
             y = center_position[1] + 0.4
         else:
             y = center_position[1] - 0.4
 
-        x = center_position[0] + 1.0 * (self._number_of_agents - agent_index) / 2
-
-        return (x, y, 0.05), (0.0, 0.0, 0.0)
+        if self._reverse:
+            x = center_position[0] - 1.0 * (self._number_of_agents - agent_index) / 2
+            position = (x, y, 0.05)
+            orientation = (0.0, 0.0, np.deg2rad(180))
+        else:
+            x = center_position[0] + 1.0 * (self._number_of_agents - agent_index) / 2
+            position = (x, y, 0.05)
+            orientation = (0.0, 0.0, 0.0)
+        return position, orientation
 
 
 class RandomPositioningStrategy(PositioningStrategy):
