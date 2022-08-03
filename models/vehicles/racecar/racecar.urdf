@@ -270,7 +270,8 @@
         </visual>
     </link>
     <joint name="hokuyo_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0.335 0.0 0.075"/>
+        <!-- measurement on real car: dist from rear axis 0.217 m, height of lidar base 0.088m. -->
+        <origin rpy="0 0 0" xyz="0.217 0.0 0.088"/>
         <parent link="chassis"/>
         <child link="laser"/>
         <axis xyz="0 0 1"/>
