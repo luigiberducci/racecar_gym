@@ -26,9 +26,9 @@ class AutomaticGridStrategy(PositioningStrategy):
         center_position = self._distance_map.to_meter(px + max_index[0], py + max_index[1])
 
         if agent_index % 2 == 0:
-            y = center_position[1] + 0.4
+            y = center_position[1] + 0.3
         else:
-            y = center_position[1] - 0.4
+            y = center_position[1] - 0.3
 
         if self._reverse:
             x = center_position[0] - 1.0 * (self._number_of_agents - agent_index)

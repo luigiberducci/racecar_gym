@@ -21,20 +21,20 @@ class PID:
     def control(self, target, measurement):
         error = target - measurement
         self.integral += error
-        output_control = self._c.kp * error + \
-                         self._c.ki * self.integral + \
-                         self._c.kd * (error - self.prev_error)
+        output_control = self._c.kp * error + self._c.ki * self.integral + self._c.kd * (error - self.prev_error)
         self.prev_error = error
         return output_control
 
 
 class FollowTheWall(Agent):
     """
-    Follow The Wall Controller which keep a fixed distance to the Left wall at a fixed speed.
+    Follow The Wall Controller which keep a fixed distance to the Left wall.
+    The velocity profile depends on the steering angle.
     It works decently in smooth tracks (no 90 degree or hairpin curves).
 
     Note: PID parameters *must* be tuned according to the track, target distance and target speed.
     """
+
     @dataclass
     class Config:
         # scan configuration (used to process observation and compute angles)
@@ -47,10 +47,12 @@ class FollowTheWall(Agent):
         max_speed: float = 3.5  # max speed (m/s)
         # controller params
         target_distance_left: float = 0.5,  # distance to the left wall (m)
-        target_speed: float = 1.0,          # constant reference velocity (ms)
-        alpha: float = 60                   # reference angle for the 2nd beam
-        n_beams_for_dist: int = 3           # used to estimate distance by averaging this nr of beams
-        pid_config: PID.PIDConfig = PID.PIDConfig(1.0, 0.0, 0.0)    # important: pid for lateral control
+        max_deviation: float = 100,         # max deviation of target distance from current distance (m), avoid u-turns
+        alpha: float = 60  # reference angle for the 2nd beam
+        n_beams_for_dist: int = 3  # used to estimate distance by averaging this nr of beams
+        pid_config: PID.PIDConfig = PID.PIDConfig(1.0, 0.0, 0.0)  # important: pid for lateral control
+        base_speed: float = 1.0  # base speed in longitudinal control (ms)
+        variable_speed: float = 1.0  # variable speed in longitudinal control (ms)
 
     def __init__(self, config: Dict = {}):
         # config controllers
@@ -80,9 +82,18 @@ class FollowTheWall(Agent):
         scan = observation[self._c.scan_field]
 
         # compute speed, steering targets
-        predicted_distance = self._compute_distance(scan)
-        steering = self._steer_ctrl.control(self._c.target_distance_left, predicted_distance)
-        speed = self._c.target_speed
+        current_distance, predicted_distance = self._compute_distances(scan)
+
+        # target correction
+        # problem: when starting too far from the target distance, the agent causes u-shape turns
+        # solution: control the target distance incrementally to avoid too aggressive steering
+        distance_error = np.clip(self._c.target_distance_left - current_distance,
+                                 -self._c.max_deviation, self._c.max_deviation)
+        target_distance = current_distance + distance_error
+
+        unclip_steering = self._steer_ctrl.control(target_distance, predicted_distance)
+        steering = np.clip(unclip_steering, -self._c.max_steering, self._c.max_steering)
+        speed = self.control_speed(steering=steering)
 
         # convert to normalized scale
         if return_norm_actions:
@@ -95,14 +106,14 @@ class FollowTheWall(Agent):
             speed = np.clip(speed, self._c.min_speed, self._c.max_speed)
         return {"steering": steering, "speed": speed}, None
 
-    def _compute_distance(self, scan: np.array):
+    def _compute_distances(self, scan: np.array) -> Tuple[float, float]:
         # https://f1tenth-coursekit.readthedocs.io/en/latest/assignments/labs/lab3.html
         left_dist = self._average_distance_around_beam(scan, self._left_index, n=self._n_beams_for_dist)
         alpha_dist = self._average_distance_around_beam(scan, self._alpha_index, n=self._n_beams_for_dist)
         theta = np.arctan((alpha_dist * self._cos_alpha - left_dist) / (alpha_dist * self._sin_alpha))  # in radians
         dist_to_wall = left_dist * np.cos(theta)
         naive_predicted_distance = 0.5 * np.sin(theta)  # this might benefit from some multiplicative scalar
-        return dist_to_wall + naive_predicted_distance
+        return left_dist, dist_to_wall + naive_predicted_distance
 
     @staticmethod
     def _average_distance_around_beam(data, index, n=3):
@@ -111,6 +122,11 @@ class FollowTheWall(Agent):
         n values of data, centered around index
         """
         return np.mean(data[index - n // 2:index + n // 2 + 1])
+
+    def control_speed(self, steering: float) -> float:
+        speed = self._c.base_speed + (1 - abs(steering) / self._c.max_steering) * self._c.variable_speed
+        speed = np.clip(speed, self._c.min_speed, self._c.max_speed)
+        return speed
 
     @staticmethod
     def _linear_scaling(v, from_range, to_range, clip=True):
