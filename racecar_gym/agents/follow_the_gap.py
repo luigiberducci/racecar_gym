@@ -94,6 +94,8 @@ class FollowTheGap(Agent):
         speed = np.clip(speed, self._c.min_speed, self._c.max_speed)
         return speed
 
-    def reset(self) -> State:
-        # ftg is state-less -> do nothing
+    def reset(self, config: Dict = None) -> State:
+        # ftg is state-less -> do nothing a part from changing params
+        if config is not None:
+            self._c = FollowTheGap.Config(**config)
         pass
