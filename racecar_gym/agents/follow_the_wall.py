@@ -1,3 +1,4 @@
+import dataclasses
 from dataclasses import dataclass
 from typing import Tuple, Dict
 
@@ -13,8 +14,8 @@ class PID:
         ki: float = 0.0
         kd: float = 0.0
 
-    def __init__(self, config: PIDConfig):
-        self._c = config
+    def __init__(self, config: Dict = {}):
+        self._c = self.PIDConfig(**config)
         self.prev_error = 0
         self.integral = 0
 
@@ -50,7 +51,7 @@ class FollowTheWall(Agent):
         max_deviation: float = 100  # max deviation of target distance from current distance (m), avoid u-turns
         alpha: float = 60  # reference angle for the 2nd beam
         n_beams_for_dist: int = 3  # used to estimate distance by averaging this nr of beams
-        pid_config: PID.PIDConfig = PID.PIDConfig(1.0, 0.0, 0.0)  # important: pid for lateral control
+        pid_config: Dict[str, float] = dataclasses.field(default_factory=lambda : {"kp": 1.0, "ki": 0.0, "kd": 0.0})  # important: pid for lateral control
         base_speed: float = 1.0  # base speed in longitudinal control (ms)
         variable_speed: float = 1.0  # variable speed in longitudinal control (ms)
 
@@ -136,6 +137,8 @@ class FollowTheWall(Agent):
         new_v = to_range[0] + (to_range[1] - to_range[0]) * new_v  # map it to target range
         return new_v
 
-    def reset(self) -> State:
-        # stateless controller
+    def reset(self, config: Dict = None) -> State:
+        # ftw is state-less -> do nothing a part from changing params
+        if config is not None:
+            self._c = FollowTheWall.Config(**config)
         pass
