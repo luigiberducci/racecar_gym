@@ -230,7 +230,10 @@ class World(world.World):
         self._state[agent.id]['time'] = self._time
 
         progress = self._state[agent.id]['progress']
-        checkpoints = 1.0 / float(self._config.map_config.checkpoints)
+        # bug: checking checkpoints and lap when crossing exactly 1.0 may skip the lap update
+        # becase the progress map jumps from 0.99 to 0.0.
+        # bugfix: compute checkpoint considering a max progress of 0.99
+        checkpoints = 0.99 / float(self._config.map_config.checkpoints)     # use 0.98 instead of 1.0 to avoid skip lap
         checkpoint = int(progress / checkpoints)
 
         if 'checkpoint' in self._state[agent.id]:
