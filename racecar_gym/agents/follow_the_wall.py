@@ -46,8 +46,8 @@ class FollowTheWall(Agent):
         min_speed: float = 0.0  # min speed (m/s)
         max_speed: float = 3.5  # max speed (m/s)
         # controller params
-        target_distance_left: float = 0.5,  # distance to the left wall (m)
-        max_deviation: float = 100,         # max deviation of target distance from current distance (m), avoid u-turns
+        target_distance_left: float = 0.5  # distance to the left wall (m)
+        max_deviation: float = 100  # max deviation of target distance from current distance (m), avoid u-turns
         alpha: float = 60  # reference angle for the 2nd beam
         n_beams_for_dist: int = 3  # used to estimate distance by averaging this nr of beams
         pid_config: PID.PIDConfig = PID.PIDConfig(1.0, 0.0, 0.0)  # important: pid for lateral control
