@@ -1,26 +1,35 @@
 from dataclasses import dataclass
-from typing import Any, Tuple, Set, List, Dict
+from typing import Any, Tuple, List, Dict
 
 import numpy as np
 
-from agents.agent import Agent, ObservationDict, ActionDict
+from racecar_gym.agents.agent import Agent, ObservationDict, ActionDict, State
 
 
 class FollowTheGap(Agent):
+    """
+    Follow the Gap controller.
+
+    It implements a simple reactive controller with the following control laws:
+        Lateral control:
+            steering(t) = steering gain * angle_{center-gap}
+        Longitudinal control:
+            speed(t) = base_speed + variable speed * (1 - |steering(t)|) / max_steering
+    """
     @dataclass
     class Config:
-        # scan configuration
-        scan_field: str = "lidar"  # field in observation corresponding to the lidar scan
-        gap_threshold: float = 3.0  # min threshold for gap detection
+        # scan configuration (used to process observations)
+        scan_field: str = "lidar"   # field in observation corresponding to the laser scan
         scan_fov_degree: int = 270  # field-of-view of lidar sensor in degree
         # actuators limits
         max_steering: float = 0.42  # max steering (in absolute value, assuming symmetric steering)
         min_speed: float = 0.0  # min, max speed
         max_speed: float = 3.5
-        # control gains
-        steering_gain: float = 1.0  # gain on steering computed starting from the selected gap
-        fixed_speed: float = 1.0  # speed controller = fixed speed + variable speed * something
-        variable_speed: float = 2.0
+        # controller params
+        gap_threshold: float = 3.0  # important: min threshold for gap detection (m)
+        steering_gain: float = 1.0  # gain on steering to steer more or less aggressively towards the gap (scalar)
+        base_speed: float = 1.0     # base speed in longitudinal control (ms)
+        variable_speed: float = 1.0 # variable speed in longitudinal control (ms)
 
     def __init__(self, config: Dict = {}):
         self._c = FollowTheGap.Config(**config)
@@ -37,11 +46,11 @@ class FollowTheGap(Agent):
             speed = self.control_speed(steering)
         else:
             steering = 0.0
-            speed = self._c.fixed_speed
+            speed = self._c.base_speed
 
         if return_norm_actions:
             steering = -1 + 2 * (steering + self._c.max_steering) / (2 * self._c.max_steering)
-            speed = (speed - self._c.min_speed) / (self._c.max_speed - self._c.min_speed)
+            speed = -1 + 2 * (speed - self._c.min_speed) / (self._c.max_speed - self._c.min_speed)
         return {"steering": steering, "speed": speed}, None
 
     @staticmethod
@@ -81,10 +90,12 @@ class FollowTheGap(Agent):
         return steering
 
     def control_speed(self, steering: float) -> float:
-        speed = self._c.fixed_speed + (1 - abs(steering) / self._c.max_steering) * self._c.variable_speed
+        speed = self._c.base_speed + (1 - abs(steering) / self._c.max_steering) * self._c.variable_speed
         speed = np.clip(speed, self._c.min_speed, self._c.max_speed)
         return speed
 
-    def reset(self):
-        # ftg is state-less, do nothing
+    def reset(self, config: Dict = None) -> State:
+        # ftg is state-less -> do nothing a part from changing params
+        if config is not None:
+            self._c = FollowTheGap.Config(**config)
         pass

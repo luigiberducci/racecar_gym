@@ -1,5 +1,5 @@
 world:
-  name: montreal
+  name: getreidemarkt
 agents:
   - id: A
     vehicle:
@@ -7,25 +7,25 @@ agents:
       sensors: [ lidar, pose, velocity, acceleration ]
     task:
       task_name: maximize_progress
-      params: {laps: 1, time_limit: 120.0, terminate_on_collision: True}
+      params: {laps: 1, time_limit: 120.0, terminate_on_collision: False}
   - id: B
     vehicle:
       name: racecar
       sensors: [ lidar, pose, velocity, acceleration ]
     task:
       task_name: maximize_progress
-      params: {laps: 1, time_limit: 120.0, terminate_on_collision: True}
+      params: {laps: 1, time_limit: 120.0, terminate_on_collision: False}
   - id: C
     vehicle:
       name: racecar
       sensors: [ lidar, pose, velocity, acceleration ]
     task:
       task_name: maximize_progress
-      params: {laps: 1, time_limit: 120.0, terminate_on_collision: True}
+      params: {laps: 1, time_limit: 120.0, terminate_on_collision: False}
   - id: D
     vehicle:
       name: racecar
       sensors: [ lidar, pose, velocity, acceleration ]
     task:
       task_name: maximize_progress
-      params: {laps: 1, time_limit: 120.0, terminate_on_collision: True}
+      params: {laps: 1, time_limit: 120.0, terminate_on_collision: False}

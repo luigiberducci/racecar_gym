@@ -41,6 +41,15 @@ class Motor(BulletActuator[Tuple[float, float]]):
         super().__init__(name)
         self._config = config
 
+    def set_velocity_multiplier(self, new_value):
+        self._config.velocity_multiplier = new_value
+
+    def set_max_velocity(self, new_value):
+        self._config.max_velocity = new_value
+
+    def set_max_force(self, new_value):
+        self._config.max_force = new_value
+
     def control(self, acceleration: float) -> None:
         acceleration = np.clip(acceleration, -1, +1)
         if acceleration < 0:
@@ -73,6 +82,15 @@ class Speed(BulletActuator[Tuple[float, float]]):
         super().__init__(name)
         self._config = config
 
+    def set_velocity_multiplier(self, new_value):
+        self._config.velocity_multiplier = new_value
+
+    def set_max_velocity(self, new_value):
+        self._config.max_velocity = new_value
+
+    def set_max_force(self, new_value):
+        self._config.max_force = new_value
+
     def control(self, target_speed: float) -> None:
         """ target_speed is assumed to be mapped from [0,max_velocity] to [-1, +1]"""
         target_speed = np.clip(target_speed, -1, +1)  # sanity check
@@ -102,6 +120,9 @@ class SteeringWheel(BulletActuator[float]):
     def __init__(self, name: str, config: Config):
         super().__init__(name)
         self._config = config
+
+    def set_steering_multiplier(self, new_value):
+        self._config.steering_multiplier = new_value
 
     def control(self, command: float) -> None:
         angle = command * self._config.max_steering_angle * self._config.steering_multiplier

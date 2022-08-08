@@ -250,6 +250,9 @@ class VelocitySensor(BulletSensor[NDArray[Shape["6"], Float]]):
         super().__init__(name, type)
         self._config = config
 
+    def set_gaussian_noise(self, new_value):
+        self._config.gaussian_noise = new_value
+
     def _get_velocity(self):
         velocity = util.get_velocity(id=self.body_id)
         scale = np.abs(velocity * self._config.gaussian_noise + 0.01)
