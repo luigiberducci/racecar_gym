@@ -20,22 +20,23 @@ class AutomaticGridStrategy(PositioningStrategy):
 
     def get_pose(self, agent_index: int) -> Pose:
         px, py = self._distance_map.to_pixel(position=(0, 0, 0))
+
         starting_area = self._distance_map.map[px:px + 20, py - 20:py + 20]
         center = np.argmax(starting_area)
         max_index = np.unravel_index(center, shape=starting_area.shape)
         center_position = self._distance_map.to_meter(px + max_index[0], py + max_index[1])
 
         if agent_index % 2 == 0:
-            y = center_position[1] + 0.4
+            y = center_position[1] + 0.2
         else:
-            y = center_position[1] - 0.4
+            y = center_position[1] - 0.2
 
         if self._reverse:
-            x = center_position[0] - 1.0 * (self._number_of_agents - agent_index) / 2
+            x = center_position[0] - 1.0 * (self._number_of_agents - agent_index)
             position = (x, y, 0.05)
             orientation = (0.0, 0.0, np.deg2rad(180))
         else:
-            x = center_position[0] + 1.0 * (self._number_of_agents - agent_index) / 2
+            x = center_position[0] + 1.0 * (self._number_of_agents - agent_index)
             position = (x, y, 0.05)
             orientation = (0.0, 0.0, 0.0)
         return position, orientation

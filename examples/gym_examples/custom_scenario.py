@@ -2,8 +2,8 @@ from time import sleep
 
 import numpy as np
 
-from agents.follow_the_gap import FollowTheGap
 from racecar_gym import MultiAgentScenario
+from racecar_gym.agents import FollowTheGap
 from racecar_gym.envs import gym_api
 
 scenario = MultiAgentScenario.from_spec(
