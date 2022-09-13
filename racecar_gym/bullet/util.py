@@ -25,8 +25,10 @@ def get_pose(id: int) -> Optional[NDArray[Shape["6"], Float]]:
     return pose
 
 def birds_eye(agent: Agent, width=640, height=480) -> np.ndarray:
+    #width, height = 2*640, 2*480           # for high-res frames used in fig.1 submission
     position, _ = pybullet.getBasePositionAndOrientation(agent.vehicle_id)
     position = np.array([position[0], position[1], 3.0])
+    #position = np.array([9.0, 3.5, 3.5])   # for centering view on top of 90-deg turn of treitlstrasse
     view_matrix = pybullet.computeViewMatrixFromYawPitchRoll(
         cameraTargetPosition=position,
         distance=3.0,
